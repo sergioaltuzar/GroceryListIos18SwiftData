@@ -13,15 +13,48 @@ struct ContentView: View {
     private var modelContext
     @Query private var items: [Item]
     
+    func addEssentialFoods() {
+        modelContext.insert(Item(title: "Pan y mantequilla", isCompleted: false))
+        modelContext.insert(Item(title: "Carne molida", isCompleted: true))
+        modelContext.insert(Item(title: "Camarones", isCompleted: .random()))
+        modelContext.insert(Item(title: "Mayonesa", isCompleted: .random()))
+        modelContext.insert(Item(title: "Aceite", isCompleted: .random()))
+    }
+    
     
     var body: some View {
         NavigationStack {
             List {
                 ForEach(items) { item in
                     Text(item.title)
+                        .font(.title.weight(.light))
+                        .padding(.vertical,2)
+                        .foregroundStyle(item.isCompleted == false ? Color.primary : Color.accentColor)
+                        .strikethrough(item.isCompleted)
+                        .italic(item.isCompleted)
+                        .swipeActions {
+                            Button(role: .destructive) {
+                                withAnimation {
+                                    modelContext.delete(item)
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                 }
             }
             .navigationTitle("Grocery List")
+            .toolbar {
+                if items.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            addEssentialFoods()
+                        } label: {
+                            Label("Essentials", systemImage: "carrot")
+                        }
+                    }
+                }
+            }
             .overlay {
                 if items.isEmpty {
                     ContentUnavailableView("Empty Cart", systemImage: "cart.circle", description: Text("Add some items to the shopping list."))
